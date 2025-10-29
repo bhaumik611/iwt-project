@@ -309,6 +309,16 @@ function loadUserData() {
     document.getElementById('user-name').textContent = currentUser.fullName;
     document.getElementById('user-avatar').textContent = currentUser.fullName.charAt(0).toUpperCase();
 
+    // Populate Settings -> Profile Information with actual user data
+    const fullNameEl = document.getElementById('current-full-name');
+    const studentIdEl = document.getElementById('current-student-id');
+    const courseEl = document.getElementById('current-course');
+    const semesterEl = document.getElementById('current-semester');
+    if (fullNameEl) fullNameEl.textContent = currentUser.fullName || '';
+    if (studentIdEl) studentIdEl.textContent = currentUser.studentId || '';
+    if (courseEl) courseEl.textContent = currentUser.course || '';
+    if (semesterEl) semesterEl.textContent = currentUser.semester ? `${currentUser.semester}` : '';
+
     // Update dashboard stats
     updateDashboardStats();
 
