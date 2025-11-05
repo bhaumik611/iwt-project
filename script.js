@@ -5,6 +5,7 @@ let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || {};
 let currentDate = new Date();
 let currentViewDate = new Date();
 let currentNoteSubject = null;
+let pendingNoteQueue = []; // queue of subjectIds when marking multiple presents that require notes
 
 // Chart instances
 let trendChart, performanceChart, dailyPatternChart, distributionChart;
@@ -745,8 +746,19 @@ function showAttendanceModal() {
         optionsContainer.innerHTML = '<p>No subjects added yet. Please add subjects first.</p>';
         return;
     }
-    
-    currentUser.subjects.forEach(subject => {
+    // Only show subjects scheduled for today in the attendance modal
+    const today = new Date();
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const todayName = dayNames[today.getDay()];
+
+    const todaysSubjects = currentUser.subjects.filter(subject => (subject.day || '').toLowerCase() === todayName);
+
+    if (todaysSubjects.length === 0) {
+        optionsContainer.innerHTML = '<p>No classes scheduled for today.</p>';
+        return;
+    }
+
+    todaysSubjects.forEach(subject => {
         const option = document.createElement('div');
         option.className = 'class-item';
         option.innerHTML = `
@@ -765,14 +777,15 @@ function showAttendanceModal() {
         `;
         optionsContainer.appendChild(option);
     });
-    
-    // Add event listeners to attendance buttons
-    document.querySelectorAll('.attendance-btn').forEach(btn => {
+
+    // Add event listeners to attendance buttons inside the modal only
+    optionsContainer.querySelectorAll('.attendance-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const subjectId = this.getAttribute('data-subject');
             const status = this.classList.contains('present') ? 'present' : 'absent';
-            
+
             if (status === 'present') {
+                // Ask for a note before marking present
                 showNoteModal(subjectId);
             } else {
                 markAttendance(subjectId, status);
@@ -809,9 +822,11 @@ function closeAllModals() {
     });
     currentNoteSubject = null;
     noteText.value = '';
+    // If user closed modals manually, cancel any pending batch operations
+    pendingNoteQueue = [];
 }
 
-function markAttendance(subjectId, status) {
+function markAttendance(subjectId, status, skipClose = false) {
     const subject = currentUser.subjects.find(s => s.id === subjectId);
     if (!subject) return;
     
@@ -851,9 +866,11 @@ function markAttendance(subjectId, status) {
     loadRecentActivity();
     loadTodaysClasses();
     
-    // Close modal
-    closeAllModals();
-    
+    // Close modal only when not part of a batched note flow
+    if (!skipClose) {
+        closeAllModals();
+    }
+
     showNotification(`Marked ${status} for ${subject.name}`, 'success');
 }
 
@@ -861,21 +878,40 @@ function markAllPresent() {
     const today = new Date();
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const todayName = dayNames[today.getDay()];
-    
+
     const todaysSubjects = currentUser.subjects.filter(subject => 
-        subject.day.toLowerCase() === todayName
+        (subject.day || '').toLowerCase() === todayName
     );
-    
+
     if (todaysSubjects.length === 0) {
         showNotification('No classes scheduled for today!', 'warning');
         return;
     }
-    
-    todaysSubjects.forEach(subject => {
-        markAttendance(subject.id, 'present');
-    });
-    
-    showNotification(`Marked all ${todaysSubjects.length} classes as present!`, 'success');
+
+    // Build a queue of subjects that need notes and start the sequential note flow
+    pendingNoteQueue = todaysSubjects.map(s => s.id);
+
+    // Inform the user and start with the first subject's note modal
+    showNotification(`You will be prompted to add notes for ${todaysSubjects.length} classes.`, 'info');
+    processNextPendingNote();
+}
+
+function processNextPendingNote() {
+    // Pop next subject from the queue and show note modal. If none left, finish.
+    if (!pendingNoteQueue || pendingNoteQueue.length === 0) {
+        // Finished processing all notes
+        pendingNoteQueue = [];
+        // Refresh UI just in case
+        updateDashboardStats();
+        loadRecentActivity();
+        loadTodaysClasses();
+        showNotification('All selected classes marked present.', 'success');
+        return;
+    }
+
+    const nextSubjectId = pendingNoteQueue.shift();
+    // Open note modal for this subject
+    showNoteModal(nextSubjectId);
 }
 
 function saveNote() {
@@ -909,10 +945,21 @@ function saveNote() {
     // Persist notes before marking attendance
     localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
 
-    // Mark attendance as present (this will also update stats/UI and close modals)
-    markAttendance(currentNoteSubject, 'present');
+    // Mark attendance as present but don't close modals (we're in a batched flow)
+    markAttendance(currentNoteSubject, 'present', true);
+
+    // Close only the note modal so we can open the next one in the queue (if any)
+    const noteModalEl = document.getElementById('note-modal');
+    if (noteModalEl) noteModalEl.classList.remove('active');
+    currentNoteSubject = null;
+    noteText.value = '';
 
     showNotification(`Marked Present for ${subject.name}${note ? ' — note saved.' : ''}`, 'success');
+
+    // Continue with next subject in the pending queue (if any)
+    setTimeout(() => {
+        processNextPendingNote();
+    }, 150);
 }
 
 function updateAttendanceStats() {

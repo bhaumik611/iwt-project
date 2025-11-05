@@ -1633,6 +1633,7 @@ input:checked + .toggle-slider:before {
 
 .toggle:hover .toggle-slider:before {
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    background-color: white;
 }
 
 .danger-btn {
