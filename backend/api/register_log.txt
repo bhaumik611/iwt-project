@@ -1,0 +1,19 @@
+Registration attempt at 2025-11-05 21:44:23
+Registration attempt at 2025-11-05 21:48:16
+
+---- Registration attempt at 2025-11-05 21:51:50 ----
+Raw input: {"fullName":"qdwdqwdqw","studentId":"ddqwdq","username":"bkm","password":"bkm","course":"CS","semester":"5"}
+
+---- Registration attempt at 2025-11-05 21:54:26 ----
+Raw input: {"fullName":"fwe","studentId":"qwf","username":"qwdqwd","password":"new","course":"CS","semester":"5"}
+
+---- Registration attempt at 2025-11-05 22:01:20 ----
+Raw input: {"fullName":"jkbw","studentId":"qwwjebqw","username":"newnew","password":"bkm","course":"CS","semester":"5"}
+
+---- Registration attempt at 2025-11-05 22:04:01 ----
+Raw input: {"fullName":"sdvvsd","studentId":"vsdvs","username":"newqweqw","password":"eqweqweqwsad","course":"CS","semester":"5"}
+Insert result: {"acknowledged":true,"insertedId":"690bc9d1ccbad7026b04e9b4"}
+
+---- Registration attempt at 2025-11-05 22:05:33 ----
+Raw input: {"fullName":"bhaumik","studentId":"r3r23r2","username":"new-term","password":"bkm","course":"CS","semester":"5"}
+Insert result: {"acknowledged":true,"insertedId":"690bca2dccbad7026b04e9b5"}

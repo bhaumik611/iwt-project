@@ -1,0 +1,204 @@
+{
+  "timetable": [
+    {
+      "subject": "Data Structures",
+      "faculty": "Prof. Singh",
+      "day": "Monday",
+      "start": "09:00",
+      "end": "10:00",
+      "location": "Room 101",
+      "theory": {
+        "hours": 3,
+        "credits": 3,
+        "notes": "Core theory"
+      }
+    },
+    {
+      "subject": "Discrete Mathematics",
+      "faculty": "Dr. Sharma",
+      "day": "Monday",
+      "start": "10:15",
+      "end": "11:15",
+      "location": "Room 102",
+      "theory": {
+        "hours": 3,
+        "credits": 3,
+        "notes": "Mathematical foundations"
+      }
+    },
+    {
+      "subject": "Operating Systems Lab",
+      "faculty": "Prof. Patel",
+      "day": "Monday",
+      "start": "14:00",
+      "end": "16:00",
+      "location": "Lab 1",
+      "practical": {
+        "hours": 2,
+        "lab": "Lab 1",
+        "instructor": "Lab Asst. Rakesh"
+      }
+    },
+
+    {
+      "subject": "Database Management Systems",
+      "faculty": "Prof. Verma",
+      "day": "Tuesday",
+      "start": "09:00",
+      "end": "10:00",
+      "location": "Room 103",
+      "theory": {
+        "hours": 3,
+        "credits": 3,
+        "notes": "Relational databases"
+      }
+    },
+    {
+      "subject": "Computer Networks",
+      "faculty": "Dr. Joshi",
+      "day": "Tuesday",
+      "start": "10:15",
+      "end": "11:15",
+      "location": "Room 104",
+      "theory": {
+        "hours": 3,
+        "credits": 3,
+        "notes": "Networking fundamentals"
+      }
+    },
+    {
+      "subject": "Mini Project (Group Work)",
+      "faculty": "Prof. Rao",
+      "day": "Tuesday",
+      "start": "14:00",
+      "end": "16:00",
+      "location": "Innovation Lab",
+      "practical": {
+        "hours": 2,
+        "lab": "Innovation Lab",
+        "instructor": "Self-directed"
+      }
+    },
+
+    {
+      "subject": "Software Engineering",
+      "faculty": "Prof. Kaur",
+      "day": "Wednesday",
+      "start": "09:00",
+      "end": "10:00",
+      "location": "Room 105",
+      "theory": {
+        "hours": 3,
+        "credits": 3,
+        "notes": "Core design principles"
+      }
+    },
+    {
+      "subject": "Artificial Intelligence Lab",
+      "faculty": "Prof. Mehta",
+      "day": "Wednesday",
+      "start": "11:00",
+      "end": "13:00",
+      "location": "Lab 2",
+      "practical": {
+        "hours": 2,
+        "lab": "Lab 2",
+        "instructor": "Lab Asst"
+      }
+    },
+
+    {
+      "subject": "Computer Networks Lab",
+      "faculty": "Dr. Joshi",
+      "day": "Thursday",
+      "start": "09:00",
+      "end": "11:00",
+      "location": "Lab 3",
+      "practical": {
+        "hours": 2,
+        "lab": "Lab 3",
+        "instructor": "Lab Asst. Sneha"
+      }
+    },
+    {
+      "subject": "Database Systems",
+      "faculty": "Prof. Verma",
+      "day": "Thursday",
+      "start": "11:15",
+      "end": "12:15",
+      "location": "Room 106",
+      "theory": {
+        "hours": 3,
+        "credits": 3,
+        "notes": "Query optimization"
+      }
+    },
+
+    {
+      "subject": "Compiler Design",
+      "faculty": "Prof. Naik",
+      "day": "Friday",
+      "start": "09:00",
+      "end": "10:00",
+      "location": "Room 107",
+      "theory": {
+        "hours": 3,
+        "credits": 3,
+        "notes": "Lexical and syntax analysis"
+      }
+    },
+    {
+      "subject": "Machine Learning",
+      "faculty": "Dr. Kapoor",
+      "day": "Friday",
+      "start": "10:15",
+      "end": "11:15",
+      "location": "Room 108",
+      "theory": {
+        "hours": 3,
+        "credits": 3,
+        "notes": "Introductory course"
+      }
+    },
+    {
+      "subject": "Machine Learning Lab",
+      "faculty": "Dr. Kapoor",
+      "day": "Friday",
+      "start": "14:00",
+      "end": "16:00",
+      "location": "Lab 4",
+      "practical": {
+        "hours": 2,
+        "lab": "Lab 4",
+        "instructor": "Teaching Assistant"
+      }
+    },
+
+    {
+      "subject": "Professional Communication",
+      "faculty": "Dr. Desai",
+      "day": "Saturday",
+      "start": "09:00",
+      "end": "10:00",
+      "location": "Room 109",
+      "theory": {
+        "hours": 2,
+        "credits": 2,
+        "notes": "Soft skills & presentations"
+      }
+    },
+    {
+      "subject": "Seminar / Department Meeting",
+      "faculty": "Department Staff",
+      "day": "Saturday",
+      "start": "11:00",
+      "end": "12:00",
+      "location": "Seminar Hall",
+      "theory": {
+        "hours": 1,
+        "credits": 0,
+        "notes": "Departmental announcements"
+      }
+    }
+  ]
+}

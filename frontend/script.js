@@ -200,29 +200,54 @@ function handleSetup(e) {
     const course = document.getElementById('course').value;
     const semester = document.getElementById('semester').value;
 
-    if (users[username]) {
-        showNotification('Username already exists!', 'error');
-        return;
-    }
+    console.log('Sending registration data...');
 
-    // Create user account
-    users[username] = {
+    // Create user data
+    const userData = {
         fullName,
         studentId,
         username,
         password,
         course,
-        semester,
-        subjects: [],
-        joinedDate: new Date().toISOString()
+        semester
     };
 
-    // Save to localStorage
-    localStorage.setItem('users', JSON.stringify(users));
+    // Send registration request to backend
+    console.log('Registration data:', userData);
 
-    // Set as current user
-    currentUser = users[username];
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    fetch('http://localhost:8001/api/register.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+    })
+    .then(response => {
+        console.log('Registration response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Registration response:', data);
+        if (data.success) {
+            // Save user data to localStorage
+            currentUser = {
+                ...userData,
+                subjects: [],
+                _id: data.userId
+            };
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            showDashboard();
+            loadUserData();
+            showNotification('Profile setup successful!', 'success');
+        } else {
+            showNotification(data.message || 'Registration failed!', 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Registration failed! Please try again.', 'error');
+        console.error('Registration error:', error);
+    });
 
     // Initialize attendance data for user
     if (!attendanceData[username]) {
