@@ -816,5 +816,28 @@ Artificial Intelligence,Prof. Mehta,Wednesday,11:00,12:00,Room 202</code></pre>
     </div>
 
     <script src="script.js"></script>
+    <script>
+        // Defensive fallback: ensure openEditModal exists so inline onclick won't throw
+        if (typeof window.openEditModal !== 'function') {
+            window.openEditModal = function(field) {
+                try {
+                    var editModal = document.getElementById('edit-modal');
+                    var editInput = document.getElementById('edit-input');
+                    var editLabel = document.getElementById('edit-field-name');
+                    if (!editModal || !editInput || !editLabel) return;
+                    var currentValue = (window.currentUser && window.currentUser[field]) ? window.currentUser[field] : '';
+                    editInput.value = currentValue;
+                    editInput.dataset.field = field;
+                    var displayNames = { fullName: 'Full Name', studentId: 'Student ID', course: 'Course', semester: 'Semester' };
+                    editLabel.textContent = displayNames[field] || field;
+                    editModal.classList.add('active');
+                    editModal.style.display = 'block';
+                    setTimeout(function(){ editInput.focus(); }, 50);
+                } catch (e) {
+                    console.error('fallback openEditModal error:', e);
+                }
+            };
+        }
+    </script>
 </body>
 </html>

@@ -53,6 +53,66 @@ class CollectionWrapper {
             public function getInsertedId() { return $this->id; }
         };
     }
+
+    // Find multiple documents - returns an object with toArray() method for compatibility
+    public function find(array $filter = [], array $options = []) {
+        $query = new MongoDB\Driver\Query($filter, $options);
+        $cursor = $this->manager->executeQuery($this->ns, $query);
+        return new class($cursor) {
+            private $cursor;
+            public function __construct($cursor) { $this->cursor = $cursor; }
+            public function toArray() {
+                $arr = [];
+                foreach ($this->cursor as $doc) { $arr[] = $doc; }
+                return $arr;
+            }
+        };
+    }
+
+    // Update a single document
+    public function updateOne(array $filter, array $update, array $options = []) {
+        $bulk = new MongoDB\Driver\BulkWrite();
+        $bulk->update($filter, $update, ['multi' => false, 'upsert' => $options['upsert'] ?? false]);
+        $result = $this->manager->executeBulkWrite($this->ns, $bulk);
+        return new class($result) {
+            private $result;
+            public function __construct($result) { $this->result = $result; }
+            public function getModifiedCount() {
+                try { return method_exists(\MongoDB\Driver\WriteResult::class, 'getModifiedCount') ? $this->result->getModifiedCount() : 0; }
+                catch (\Throwable $t) { return 0; }
+            }
+        };
+    }
+
+    // Delete a single document
+    public function deleteOne(array $filter) {
+        $bulk = new MongoDB\Driver\BulkWrite();
+        $bulk->delete($filter, ['limit' => 1]);
+        $result = $this->manager->executeBulkWrite($this->ns, $bulk);
+        return new class($result) {
+            private $result;
+            public function __construct($result) { $this->result = $result; }
+            public function getDeletedCount() {
+                try { return method_exists(\MongoDB\Driver\WriteResult::class, 'getDeletedCount') ? $this->result->getDeletedCount() : 0; }
+                catch (\Throwable $t) { return 0; }
+            }
+        };
+    }
+
+    // Aggregate pipeline - returns object with toArray()
+    public function aggregate(array $pipeline) {
+        $cmd = new MongoDB\Driver\Command(['aggregate' => $this->collName, 'pipeline' => $pipeline, 'cursor' => new stdClass()]);
+        $cursor = $this->manager->executeCommand($this->dbName, $cmd);
+        return new class($cursor) {
+            private $cursor;
+            public function __construct($cursor) { $this->cursor = $cursor; }
+            public function toArray() {
+                $arr = [];
+                foreach ($this->cursor as $doc) { $arr[] = $doc; }
+                return $arr;
+            }
+        };
+    }
 }
 
 class Database {

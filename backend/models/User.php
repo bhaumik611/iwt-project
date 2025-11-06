@@ -18,6 +18,10 @@ class User {
     public function findByUsername($username) {
         return $this->collection->findOne(['username' => $username]);
     }
+
+    public function findByToken($token) {
+        return $this->collection->findOne(['token' => $token]);
+    }
     
     public function findById($id) {
         return $this->collection->findOne(['_id' => new MongoDB\BSON\ObjectId($id)]);

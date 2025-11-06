@@ -58,6 +58,8 @@ const importDataBtn = document.getElementById('import-data-btn');
 const importFile = document.getElementById('import-file');
 const confirmImportBtn = document.getElementById('confirm-import');
 
+// (openEditModal is defined later inside setupEventListeners to provide a full implementation)
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -93,75 +95,149 @@ function setupEventListeners() {
     addSubjectBtn2.addEventListener('click', showSubjectModal);
     closeModals.forEach(btn => btn.addEventListener('click', closeAllModals));
     addSubjectForm.addEventListener('submit', handleAddSubject);
-    // Show/hide theory/practical sections based on selected type
-    const subjectTypeSelect = document.getElementById('subject-type');
-    const theorySection = document.getElementById('theory-section');
-    const practicalSection = document.getElementById('practical-section');
-    function toggleSubjectSections() {
-        const val = subjectTypeSelect.value;
-        if (theorySection) theorySection.style.display = (val === 'theory') ? 'block' : 'none';
-        if (practicalSection) practicalSection.style.display = (val === 'practical' || val === 'lab') ? 'block' : 'none';
-    }
-    if (subjectTypeSelect) {
-        subjectTypeSelect.addEventListener('change', toggleSubjectSections);
-        // initialize state
-        toggleSubjectSections();
-    }
-    prevMonthBtn.addEventListener('click', goToPreviousMonth);
-    nextMonthBtn.addEventListener('click', goToNextMonth);
-    subjectFilter.addEventListener('change', renderCalendar);
-    togglePassword.addEventListener('click', togglePasswordVisibility);
-    analyticsPeriod.addEventListener('change', renderAnalytics);
-    analyticsSubject.addEventListener('change', renderAnalytics);
-    exportDataBtn.addEventListener('click', exportAllData);
-    exportDataBtn2.addEventListener('click', exportAllData);
-    resetDataBtn.addEventListener('click', resetAllData);
-    themeSelect.addEventListener('change', handleThemeChange);
-    markAllPresentBtn.addEventListener('click', markAllPresent);
-    saveNoteBtn.addEventListener('click', saveNote);
-    importDataBtn.addEventListener('click', showImportModal);
-    confirmImportBtn.addEventListener('click', handleImportData);
-    // New Data Management controls
-    const downloadJsonTemplateBtn = document.getElementById('download-json-template');
-    const downloadCsvTemplateBtn = document.getElementById('download-csv-template');
-    const fileInputElem = document.getElementById('import-file');
-    if (downloadJsonTemplateBtn) downloadJsonTemplateBtn.addEventListener('click', downloadJsonTemplate);
-    if (downloadCsvTemplateBtn) downloadCsvTemplateBtn.addEventListener('click', downloadCsvTemplate);
-    if (fileInputElem) fileInputElem.addEventListener('change', handleImportFileChange);
-    // Settings inline import button (imports the selected file directly)
-    const confirmImportSettingsBtn = document.getElementById('confirm-import-settings');
-    if (confirmImportSettingsBtn) confirmImportSettingsBtn.addEventListener('click', function() {
-        // Use the same handler as the modal import button
-        handleImportData();
-    });
+    // Profile Edit Modal: expose openEditModal globally and set up listeners
+    const editModal = document.getElementById('edit-modal');
+    const cancelEditBtn = document.getElementById('cancel-edit');
+    const saveEditBtn = document.getElementById('save-edit');
+    const closeModalBtn = editModal ? editModal.querySelector('.close-modal') : null;
+    const editButtons = document.querySelectorAll('.edit-btn');
 
-    // Navigation
-    navItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            const target = this.querySelector('a').getAttribute('href');
-            showContentSection(target);
-            
-            // Update active nav item
-            navItems.forEach(nav => nav.classList.remove('active'));
-            this.classList.add('active');
+    function getFieldDisplayName(field) {
+        const displayNames = { fullName: 'Full Name', studentId: 'Student ID', course: 'Course', semester: 'Semester' };
+        return displayNames[field] || field;
+    }
 
-            // Special handling for analytics page
-            if (target === '#analytics-view') {
-                renderAnalytics();
+    // Make global so HTML onclick works
+    window.openEditModal = function(field) {
+        if (!editModal) return;
+        const editInput = document.getElementById('edit-input');
+        const editLabel = document.getElementById('edit-field-name');
+        const currentValue = currentUser && currentUser[field] ? currentUser[field] : '';
+        editInput.value = currentValue;
+        editInput.dataset.field = field;
+        editLabel.textContent = getFieldDisplayName(field);
+        editModal.classList.add('active');
+        editModal.style.display = 'block';
+        setTimeout(() => editInput.focus(), 50);
+    };
+
+    function closeEditModal() { if (!editModal) return; editModal.classList.remove('active'); editModal.style.display = 'none'; }
+
+    if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditModal);
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeEditModal);
+    window.addEventListener('click', function(e) { if (e.target === editModal) closeEditModal(); });
+
+    editButtons.forEach(btn => btn.addEventListener('click', function() { const field = this.getAttribute('data-field'); window.openEditModal(field); }));
+
+    if (saveEditBtn) {
+        saveEditBtn.addEventListener('click', function() {
+            const editInput = document.getElementById('edit-input');
+            const field = editInput.dataset.field;
+            const newValue = editInput.value.trim();
+            if (newValue) {
+                // Map camelCase field names (e.g. fullName, studentId) to the HTML id format (kebab-case)
+                const kebabField = field ? field.replace(/([A-Z])/g, '-$1').toLowerCase() : field;
+                const displayEl = document.getElementById(`current-${kebabField}`);
+                if (displayEl) displayEl.textContent = newValue;
+                if (currentUser) {
+                    currentUser[field] = newValue;
+                    users[currentUser.username] = currentUser;
+                    localStorage.setItem('users', JSON.stringify(users));
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                }
+
+                // If user changed their full name, also update header/avatar immediately
+                if (field === 'fullName') {
+                    const userNameEl = document.getElementById('user-name');
+                    const userAvatarEl = document.getElementById('user-avatar');
+                    if (userNameEl) userNameEl.textContent = newValue;
+                    if (userAvatarEl && newValue) userAvatarEl.textContent = newValue.charAt(0).toUpperCase();
+                }
+                showNotification(`${getFieldDisplayName(field)} updated successfully!`, 'success');
+                closeEditModal();
+            } else {
+                showNotification('Please enter a valid value', 'error');
             }
         });
-    });
+    }
 
-    // Close sidebar when clicking outside on mobile
-    document.addEventListener('click', function(e) {
-        if (window.innerWidth <= 768 && 
-            !sidebar.contains(e.target) && 
-            !menuToggle.contains(e.target) && 
-            sidebar.classList.contains('active')) {
-            toggleSidebar();
+    document.addEventListener('keydown', function(event) {
+        if (editModal && editModal.style.display === 'block') {
+            if (event.key === 'Enter') { const btn = document.getElementById('save-edit'); if (btn) btn.click(); }
+            else if (event.key === 'Escape') { const btn = document.getElementById('cancel-edit'); if (btn) btn.click(); }
         }
     });
+        // Show/hide theory/practical sections based on selected type
+        const subjectTypeSelect = document.getElementById('subject-type');
+        const theorySection = document.getElementById('theory-section');
+        const practicalSection = document.getElementById('practical-section');
+        function toggleSubjectSections() {
+            const val = subjectTypeSelect.value;
+            if (theorySection) theorySection.style.display = (val === 'theory') ? 'block' : 'none';
+            if (practicalSection) practicalSection.style.display = (val === 'practical' || val === 'lab') ? 'block' : 'none';
+        }
+        if (subjectTypeSelect) {
+            subjectTypeSelect.addEventListener('change', toggleSubjectSections);
+            // initialize state
+            toggleSubjectSections();
+        }
+        prevMonthBtn.addEventListener('click', goToPreviousMonth);
+        nextMonthBtn.addEventListener('click', goToNextMonth);
+        subjectFilter.addEventListener('change', renderCalendar);
+        togglePassword.addEventListener('click', togglePasswordVisibility);
+        analyticsPeriod.addEventListener('change', renderAnalytics);
+        analyticsSubject.addEventListener('change', renderAnalytics);
+        exportDataBtn.addEventListener('click', exportAllData);
+        exportDataBtn2.addEventListener('click', exportAllData);
+        resetDataBtn.addEventListener('click', resetAllData);
+        themeSelect.addEventListener('change', handleThemeChange);
+        markAllPresentBtn.addEventListener('click', markAllPresent);
+        saveNoteBtn.addEventListener('click', saveNote);
+        importDataBtn.addEventListener('click', showImportModal);
+        confirmImportBtn.addEventListener('click', handleImportData);
+        // New Data Management controls
+        const downloadJsonTemplateBtn = document.getElementById('download-json-template');
+        const downloadCsvTemplateBtn = document.getElementById('download-csv-template');
+        const fileInputElem = document.getElementById('import-file');
+        if (downloadJsonTemplateBtn) downloadJsonTemplateBtn.addEventListener('click', downloadJsonTemplate);
+        if (downloadCsvTemplateBtn) downloadCsvTemplateBtn.addEventListener('click', downloadCsvTemplate);
+        if (fileInputElem) fileInputElem.addEventListener('change', handleImportFileChange);
+        // Settings inline import button (imports the selected file directly)
+        const confirmImportSettingsBtn = document.getElementById('confirm-import-settings');
+        if (confirmImportSettingsBtn) confirmImportSettingsBtn.addEventListener('click', function() {
+            // Use the same handler as the modal import button
+            handleImportData();
+        });
+    
+        // Navigation
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = this.querySelector('a').getAttribute('href');
+                showContentSection(target);
+            
+                // Update active nav item
+                navItems.forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+    
+                // Special handling for analytics page
+                if (target === '#analytics-view') {
+                    renderAnalytics();
+                }
+            });
+        });
+    
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !menuToggle.contains(e.target) && 
+                sidebar.classList.contains('active')) {
+                toggleSidebar();
+            }
+        });
+    
+    // (navigation and mobile close-sidebar handlers are set above; duplicate block removed)
 }
 
 function checkLoginStatus() {
@@ -851,7 +927,8 @@ function closeAllModals() {
     pendingNoteQueue = [];
 }
 
-function markAttendance(subjectId, status, skipClose = false) {
+// markAttendance now supports suppressing its notification when called as part of a batched flow
+function markAttendance(subjectId, status, skipClose = false, suppressNotification = false) {
     const subject = currentUser.subjects.find(s => s.id === subjectId);
     if (!subject) return;
     
@@ -896,7 +973,9 @@ function markAttendance(subjectId, status, skipClose = false) {
         closeAllModals();
     }
 
-    showNotification(`Marked ${status} for ${subject.name}`, 'success');
+    if (!suppressNotification) {
+        showNotification(`Marked ${status} for ${subject.name}`, 'success');
+    }
 }
 
 function markAllPresent() {
@@ -971,7 +1050,8 @@ function saveNote() {
     localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
 
     // Mark attendance as present but don't close modals (we're in a batched flow)
-    markAttendance(currentNoteSubject, 'present', true);
+    // suppressNotification=true so saveNote shows a single combined notification
+    markAttendance(currentNoteSubject, 'present', true, true);
 
     // Close only the note modal so we can open the next one in the queue (if any)
     const noteModalEl = document.getElementById('note-modal');
