@@ -1,0 +1,9 @@
+# railway.toml
+[services.backend]
+root = "backend"
+start = "php -S 0.0.0.0:$PORT -t ."
+
+[services.frontend]
+root = "frontend"
+build = ""
+start = ""
